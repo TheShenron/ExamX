@@ -1,39 +1,73 @@
-# Code Proctor
+# Kanshi — The Silent Watcher for Coding Assessments
 
-Code Proctor is a Visual Studio Code extension for monitoring coding activity during exams, interviews, and assessments. It helps maintain fair coding practices by tracking user behavior inside the editor.
+**Kanshi** is a lightweight, passive proctoring extension for Visual Studio Code.  
+Built for coding exams, and technical assessments — where focus, fairness, and integrity matter.
 
-## Features
+Kanshi does not interrupt the candidate.  
+It simply observes, records, and reports.
 
-- Monitor coding activity in real time
-- Detect focus change and tab switching
-- Start and stop proctoring sessions
-- Generate basic activity logs
+Quietly. Reliably. Like a guardian in the background.
 
-## Requirements
+---
 
-- Visual Studio Code version 1.80 or later
+## ✨ Philosophy
 
-## Extension Settings
+A good assessment should feel natural.
 
-This extension provides the following settings:
+Candidates should be able to code without fear.  
+Examiners should be able to review sessions with clarity.
 
-- `codeProctor.enable`: Enable or disable the extension
-- `codeProctor.strictMode`: Enable strict monitoring
-- `codeProctor.logLevel`: Control logging level
+**Kanshi helps both — by capturing meaningful signals without blocking workflow.**
 
-## Known Issues
+---
 
-- Limited detection in remote environments
-- OS-level activity may not always be captured
+## ⚔️ Features
 
-## Release Notes
+- 🟢 Passive monitoring (non-blocking, workflow-friendly)
+- 👁️ Detect focus changes and tab switching
+- 📋 Log clipboard usage
+- ⌨️ Track shortcut actions
+- 🧾 Record editor activity and session events
+- ⏯️ Start and stop proctoring sessions anytime
+- 🔍 Generate clean, review-friendly logs
 
-### 1.0.0
-Initial release of Code Proctor
+---
 
-## For More Information
+## 🎯 Use Cases
 
-- Visual Studio Code Extension Guidelines  
-  https://code.visualstudio.com/api/references/extension-guidelines
+- Online coding exams  
+- Campus hiring tests  
+- Technical interviews  
+- Timed coding challenges  
+- Internal skill assessments  
 
-Enjoy using Code Proctor!
+---
+
+## 🧩 Requirements
+
+- Visual Studio Code version **1.80** or later
+
+---
+
+## ⚙️ Extension Settings
+
+Kanshi provides the following settings:
+
+- `kanshi.enable` — Enable or disable Kanshi  
+- `kanshi.strictMode` — Enable stricter monitoring  
+- `kanshi.logLevel` — Control logging level  
+
+---
+
+## ⚠️ Known Issues
+
+- Limited detection in remote environments  
+- OS-level activity may not always be captured  
+
+---
+
+## 📦 Release Notes
+
+### 0.0.3
+Release of **Kanshi** — the silent watcher.
+
