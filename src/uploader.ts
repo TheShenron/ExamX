@@ -1,9 +1,4 @@
 import * as vscode from "vscode";
-import { session } from "./session";
-import { getGitLogs } from "./gitLogger";
-import { getDriveId, getExamId } from "./extensionContext";
-import { api } from "./api/client";
-
 import * as cp from "node:child_process";
 
 type TestResult = {
@@ -72,60 +67,4 @@ export function runTests(): Promise<TestResult> {
       console.error(text);
     });
   });
-}
-
-export async function upload(
-  zipPath: string,
-  progress?: vscode.Progress<{ message?: string }>
-) {
-  try {
-    progress?.report({ message: "Running tests..." });
-
-    // 1) Run tests first and get result JSON
-    const testResult = await runTests();
-
-    const isPassed = testResult.failed === 0;
-
-    const score =
-      testResult.total > 0
-        ? Math.round((testResult.passed / testResult.total) * 100)
-        : 0;
-
-    progress?.report({ message: "Collecting git logs..." });
-
-    // 2) Collect git logs
-    const gitLogs = await getGitLogs();
-    session.events.push({
-      type: "gitLogs",
-      timestamp: Date.now(),
-      meta: { gitLogs },
-    });
-
-    progress?.report({ message: "Submitting results..." });
-
-    const examId = getExamId();
-    const driveId = getDriveId();
-
-    // 3) Submit exam only AFTER tests complete
-    const { data: submitExam } = await api.post(`/results/me/submit`, {
-      examId,
-      hiringDriveId: driveId,
-      isPassed,
-      score,
-    });
-
-    const resultId = submitExam?.data?._id || "";
-
-    progress?.report({ message: "Uploading proctoring events..." });
-
-    // 4) Upload proctoring
-    await api.post(`/results/${resultId}/proctoring`, {
-      events: session.events,
-    });
-
-    progress?.report({ message: "Finalizing submission..." });
-  } catch (err: any) {
-    console.error(err);
-    throw new Error(err?.response?.data?.message || err?.message || "Submission failed");
-  }
 }

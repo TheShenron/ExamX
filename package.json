@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
+    "@types/form-data": "^2.2.1",
     "@types/luxon": "^3.7.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
@@ -68,6 +69,7 @@
     "adm-zip": "^0.5.16",
     "axios": "^1.13.3",
     "compressing": "^2.0.0",
+    "form-data": "^4.0.5",
     "luxon": "^3.7.2"
   }
 }

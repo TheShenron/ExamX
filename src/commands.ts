@@ -1,18 +1,17 @@
 import * as vscode from "vscode";
 import { login } from "./auth";
-import { session, stopSession } from "./session";
+import { stopSession } from "./session";
 import { zipWorkspace } from "./zipper";
-import { upload } from "./uploader";
 import { stopTimer } from "./timer";
 import { setState } from "./state";
 import { stopProctoring } from "./proctor";
 import * as fs from "node:fs";
-import { clearExamId, clearExamWorkspace, getContext, getDriveId, getExamId, getExamWorkspace, getToken, resetToken, saveDriveId, saveExamId, saveExamWorkspacePath, saveTimer } from "./extensionContext";
+import { clearExamId, clearExamWorkspace, getContext, getExamWorkspace, resetToken, saveDriveId, saveExamId, saveExamWorkspacePath, saveTimer } from "./extensionContext";
 import { api } from "./api/client";
 import AdmZip from "adm-zip";
 import * as path from "node:path";
 import * as os from "node:os";
-import { getGitLogs } from "./gitLogger";
+import { submitExam } from "./submission";
 
 interface HiringDriveQuickPickItem extends vscode.QuickPickItem {
   examData: {
@@ -179,7 +178,7 @@ async function cleanupExamWorkspace() {
     await clearExamWorkspace();
   }
 }
-// Central submit logic
+
 export async function handleSubmit(mode: "manual" | "auto") {
   return vscode.window.withProgress(
     {
@@ -189,7 +188,6 @@ export async function handleSubmit(mode: "manual" | "auto") {
     },
     async (progress) => {
       const context = getContext();
-
       let zip: string | null = null;
 
       try {
@@ -210,51 +208,34 @@ export async function handleSubmit(mode: "manual" | "auto") {
           return;
         }
 
-        // upload (no nested progress)
-        await upload(zip, progress);
+        // Single source of truth
+        await submitExam(zip, progress);
+
         await setState("examSubmitted");
 
-        // Success message (ONLY HERE)
-        let message =
-          mode === "auto" ? "Exam auto-submitted" : "Exam submitted successfully";
+        const message =
+          mode === "auto"
+            ? "Exam auto-submitted successfully."
+            : "Exam submitted successfully.";
 
         vscode.window.showInformationMessage(message);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error during submission:", err);
 
-        const examId = getExamId();
-        const driveId = getDriveId();
+        // Mark as submitted? depends on your product rules.
+        // Usually: do NOT mark submitted if submitExam() threw.
+        // await setState("examSubmitted");
 
-        // 3) Submit exam only AFTER tests complete
-        const { data: submitExam } = await api.post(`/results/me/submit`, {
-          examId,
-          hiringDriveId: driveId,
-          isPassed: false,
-          score: 0,
-        });
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Submission failed due to an unexpected error.";
 
-        const resultId = submitExam?.data?._id || "";
-
-        progress?.report({ message: "Uploading proctoring events..." });
-
-        const gitLogs = await getGitLogs();
-        session.events.push({
-          type: "gitLogs",
-          timestamp: Date.now(),
-          meta: { gitLogs },
-        });
-
-        // 4) Upload proctoring
-        await api.post(`/results/${resultId}/proctoring`, {
-          events: session.events,
-        });
-        await setState("examSubmitted");
-
-        vscode.window.showErrorMessage("Submission failed due to an unexpected error.");
-
+        vscode.window.showErrorMessage(msg);
       } finally {
         progress.report({ message: "Cleaning up..." });
 
+        // Always delete zip
         if (zip) {
           try {
             fs.unlinkSync(zip);
@@ -263,6 +244,7 @@ export async function handleSubmit(mode: "manual" | "auto") {
           }
         }
 
+        // Always cleanup workspace + exam state
         try {
           await cleanupExamWorkspace();
           await clearExamId();
@@ -271,6 +253,9 @@ export async function handleSubmit(mode: "manual" | "auto") {
         }
 
         resetToken();
+
+        // NOTE:
+        // If you want "loggedOut" always after submission attempt:
         await setState("loggedOut");
       }
     }
