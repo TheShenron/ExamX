@@ -64,7 +64,7 @@ export async function submitExam(
     let testResult: TestResult | null = null;
 
     // ---- 1) Run tests (but do NOT abort submission if tests runner crashes)
-    progress?.report({ message: "Running tests..." });
+    progress?.report({ message: "Validating your solution" });
 
     try {
         testResult = await runTests();
@@ -80,7 +80,7 @@ export async function submitExam(
     await pushGitLogsEvent();
 
     // ---- 3) Submit result
-    progress?.report({ message: "Submitting results..." });
+    progress?.report({ message: "Retrieving commit history" });
 
     const zipBuffer = fs.readFileSync(zipPath);
 
@@ -107,7 +107,7 @@ export async function submitExam(
     }
 
     // ---- 4) Upload proctoring events (best effort)
-    progress?.report({ message: "Uploading proctoring events..." });
+    progress?.report({ message: "Finalizing exam session data" });
 
     try {
         await api.post(`/results/${resultId}/proctoring`, {
@@ -118,7 +118,7 @@ export async function submitExam(
         console.error("Proctoring upload failed (best effort):", err);
     }
 
-    progress?.report({ message: "Finalizing submission..." });
+    progress?.report({ message: "Finalizing your submission" });
 
     return {
         resultId,

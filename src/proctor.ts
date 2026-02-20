@@ -28,7 +28,7 @@ export function startProctoring() {
   disposables.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document !== event.document) {
+      if (editor?.document !== event.document) {
         return;
       }
 

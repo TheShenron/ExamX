@@ -5,7 +5,7 @@ import { stopTimerBar } from '../timerBar';
 import { setState } from '../state';
 
 export const api = axios.create({
-    baseURL: process.env.BASE_URL,
+    baseURL: 'https://kanshi-core-production.up.railway.app/api',
     headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`

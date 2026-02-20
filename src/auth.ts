@@ -9,26 +9,26 @@ export async function login(progress?: vscode.Progress<{ message?: string }>) {
   });
 
   if (!email) {
-    throw new Error("Invalid Email!");
+    throw new Error("Please enter a valid email address");
   }
 
   const testCode = await vscode.window.showInputBox({
-    prompt: "Test Code",
+    prompt: "Enter your exam access code",
     password: true,
     ignoreFocusOut: true,
   });
 
   if (!testCode) {
-    throw new Error("Invalid TestCode!");
+    throw new Error("Please enter a valid exam code");
   }
 
-  progress?.report({ message: "Authenticating..." });
+  progress?.report({ message: "Authenticating your session" });
 
   const { data: loginData } = await api.post("/users/login", {
     email,
     password: testCode,
   });
 
-  progress?.report({ message: "Saving session..." });
+  progress?.report({ message: "Finalizing your session" });
   await setToken(loginData.data.token);
 }

@@ -1,6 +1,3 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
 import * as vscode from "vscode";
 import { initState } from "./state";
 import { registerCommands } from "./commands";

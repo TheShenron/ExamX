@@ -15,7 +15,7 @@ export async function zipWorkspace(
   const srcPath = path.join(root, "src");
   if (!fs.existsSync(srcPath)) {
     vscode.window.showErrorMessage(
-      'Source folder "src" not found in workspace root.',
+      "Submission failed: We couldn't find the required folder/file in your workspace."
     );
     return null;
   }

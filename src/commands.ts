@@ -83,18 +83,26 @@ export function registerCommands() {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "Exam setup in progress...",
+          title: "Preparing Your Exam Session",
           cancellable: false,
         },
         async (progress) => {
           try {
-            progress.report({ message: "Logging in..." });
+            progress.report({ message: "Authenticating your session" });
             await login(progress);
 
-            progress.report({ message: "Fetching hiring drives..." });
+            progress.report({ message: "Loading your assigned exam sessions" });
             const { data: hiringDriveData } = await api.get(`/users/me/hiring-drives`);
 
             const hiringDrive = hiringDriveData?.data || [];
+
+            if (!hiringDrive.length) {
+              vscode.window.showWarningMessage(
+                "No exam sessions are currently assigned to you"
+              );
+              return;
+            }
+
             const hiringDriveItems: HiringDriveQuickPickItem[] = hiringDrive.map((item: any) => ({
               label: item.name,
               detail: `Code: ${item.code}`,
@@ -106,12 +114,12 @@ export function registerCommands() {
             }));
 
             const selectedHiringDriveItems = await vscode.window.showQuickPick(hiringDriveItems, {
-              placeHolder: "Select an Hiring Drive to continue",
+              placeHolder: "Select an exam session to continue",
               canPickMany: false,
             });
 
             if (!selectedHiringDriveItems) {
-              vscode.window.showWarningMessage("No Hiring Drive selected");
+              vscode.window.showWarningMessage("An exam session must be selected to proceed");
               return;
             }
 
@@ -121,6 +129,14 @@ export function registerCommands() {
             );
 
             const exams = examsData?.data || [];
+
+            if (!exams.length) {
+              vscode.window.showWarningMessage(
+                "There are no exams available for the selected session"
+              );
+              return;
+            }
+
             const examItems: ExamQuickPickItem[] = exams.map((item: any) => ({
               label: item.title,
               detail: `Duration: ${item.duration} minutes (${item.difficulty})`,
@@ -133,16 +149,16 @@ export function registerCommands() {
             }));
 
             const selectedExam = await vscode.window.showQuickPick(examItems, {
-              placeHolder: "Select an exam to continue",
+              placeHolder: "Select an exam to begin",
               canPickMany: false,
             });
 
             if (!selectedExam) {
-              vscode.window.showWarningMessage("No exam selected");
+              vscode.window.showWarningMessage("An exam must be selected to proceed");
               return;
             }
 
-            progress.report({ message: "Preparing exam workspace..." });
+            progress.report({ message: "Setting up your exam workspace" });
 
             const buf = Buffer.from(selectedExam.examData.examZipFile, "base64");
             const zip = new AdmZip(buf);
@@ -159,14 +175,14 @@ export function registerCommands() {
             const tempFolder = path.join(baseFolder, `exam-${selectedExam.examData.name}`);
             fs.mkdirSync(tempFolder, { recursive: true });
 
-            progress.report({ message: "Starting exam..." });
+            progress.report({ message: "SLaunching your exam" });
 
             await api.post(`/results/me/start`, {
               examId: selectedExam.examData.id,
               hiringDriveId: selectedHiringDriveItems.examData.id,
             });
 
-            progress.report({ message: "Saving exam state..." });
+            progress.report({ message: "Finalizing exam setup" });
 
             await saveExamWorkspacePath(tempFolder);
             await saveTimer(Date.now(), Number(selectedExam.examData.duration) * 60);
@@ -174,10 +190,10 @@ export function registerCommands() {
             await saveExamId(selectedExam.examData.id);
             await saveDriveId(selectedHiringDriveItems.examData.id);
 
-            progress.report({ message: "Extracting exam files..." });
+            progress.report({ message: "Processing exam files" });
             zip.extractAllTo(tempFolder, true);
 
-            progress.report({ message: "Opening workspace..." });
+            progress.report({ message: "Opening your exam workspace" });
 
             writeExamWorkspaceSettings(tempFolder);
             await vscode.commands.executeCommand(
@@ -196,7 +212,7 @@ export function registerCommands() {
     }),
 
     vscode.commands.registerCommand("exam.instructions", () => {
-      const url = "https://github.com/TheShenron";
+      const url = "https://www.linkedin.com/in/theshenron";
       vscode.env.openExternal(vscode.Uri.parse(url));
     }),
 
@@ -219,7 +235,7 @@ async function cleanupExamWorkspace() {
       useTrash: false
     });
   } catch (err) {
-    console.error("Failed to cleanup exam workspace", err);
+    console.error("We couldn’t reset the exam workspace", err);
   } finally {
     await clearExamWorkspace();
   }
@@ -229,7 +245,7 @@ export async function handleSubmit(mode: "manual" | "auto") {
   return vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: "Submitting exam...",
+      title: "Submitting your exam",
       cancellable: false,
     },
     async (progress) => {
@@ -237,19 +253,19 @@ export async function handleSubmit(mode: "manual" | "auto") {
       let zip: string | null = null;
 
       try {
-        progress.report({ message: "Stopping exam session..." });
+        progress.report({ message: "Ending your exam session" });
 
         stopTimer();
         stopSession();
         stopProctoring();
 
-        progress.report({ message: "Preparing workspace..." });
+        progress.report({ message: "Setting up the exam environment" });
 
         zip = await zipWorkspace(context);
 
         if (!zip) {
           vscode.window.showErrorMessage(
-            "Submission failed: 'src' folder not found in workspace."
+            "Submission failed: We couldn't find the required file/folder in your workspace"
           );
           return;
         }
@@ -261,8 +277,8 @@ export async function handleSubmit(mode: "manual" | "auto") {
 
         const message =
           mode === "auto"
-            ? "Exam auto-submitted successfully."
-            : "Exam submitted successfully.";
+            ? "Time’s up! Your exam has been submitted automatically."
+            : "Your exam has been submitted successfully.";
 
         vscode.window.showInformationMessage(message);
       } catch (err: any) {

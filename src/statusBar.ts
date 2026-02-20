@@ -25,8 +25,9 @@ export function initStatusBar() {
     vscode.StatusBarAlignment.Left,
     99,
   );
-  instructionButton.text = "$(github) Join the Squad";
-  instructionButton.tooltip = "Connect with me on GitHub";
+  instructionButton.text = "$(account) Join the Network";
+  instructionButton.tooltip = "Connect with me on LinkedIn";
+
   instructionButton.command = "exam.instructions";
   context.subscriptions.push(instructionButton);
   instructionButton.show();
