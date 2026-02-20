@@ -69,6 +69,7 @@
     "adm-zip": "^0.5.16",
     "axios": "^1.13.3",
     "compressing": "^2.0.0",
+    "dotenv": "^17.3.1",
     "form-data": "^4.0.5",
     "luxon": "^3.7.2"
   }

@@ -5,7 +5,7 @@ import { stopTimerBar } from '../timerBar';
 import { setState } from '../state';
 
 export const api = axios.create({
-    baseURL: 'http://localhost:5174/api',
+    baseURL: process.env.BASE_URL,
     headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`
