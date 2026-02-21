@@ -177,7 +177,7 @@ export function registerCommands() {
 
             progress.report({ message: "Launching your exam" });
 
-            const startExamRes = await api.post(`/results/me/start`, {
+            const { data: startExamRes } = await api.post(`/results/me/start`, {
               examId: selectedExam.examData.id,
               hiringDriveId: selectedHiringDriveItems.examData.id,
             });
