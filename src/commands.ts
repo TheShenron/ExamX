@@ -6,7 +6,7 @@ import { stopTimer } from "./timer";
 import { setState } from "./state";
 import { stopProctoring } from "./proctor";
 import * as fs from "node:fs";
-import { clearExamId, clearExamWorkspace, getContext, getExamWorkspace, resetToken, saveDriveId, saveExamId, saveExamWorkspacePath, saveTimer } from "./extensionContext";
+import { clearExamId, clearExamWorkspace, getContext, getExamWorkspace, resetToken, saveDriveId, saveExamId, saveExamWorkspacePath, saveTimer, setToken } from "./extensionContext";
 import { api } from "./api/client";
 import AdmZip from "adm-zip";
 import * as path from "node:path";
@@ -177,10 +177,11 @@ export function registerCommands() {
 
             progress.report({ message: "Launching your exam" });
 
-            await api.post(`/results/me/start`, {
+            const startExamRes = await api.post(`/results/me/start`, {
               examId: selectedExam.examData.id,
               hiringDriveId: selectedHiringDriveItems.examData.id,
             });
+            await setToken(startExamRes.data.examToken);
 
             progress.report({ message: "Finalizing exam setup" });
 

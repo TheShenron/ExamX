@@ -55,9 +55,22 @@ function updateText() {
     return;
   }
 
-  const min = Math.floor(remaining / 60);
-  const sec = remaining % 60;
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+  const seconds = remaining % 60;
 
-  timerBar.text = `$(clock) Exam: ${min}:${sec.toString().padStart(2, "0")}`;
+  let timeString;
+
+  if (hours > 0) {
+    timeString = `${hours}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  } else {
+    timeString = `${minutes}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
+  timerBar.text = `$(clock) Exam: ${timeString}`;
   timerBar.tooltip = "Remaining exam time";
 }
